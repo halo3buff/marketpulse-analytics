@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+
+# dbt
+marketpulse/target/
+marketpulse/dbt_packages/
+marketpulse/logs/
+
+# Credentials — never commit these
+profiles.yml
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+logs/
+
