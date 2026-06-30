@@ -19,3 +19,11 @@ Thumbs.db
 
 logs/
 
+hidden_valley/
+
+.claude/
+
+# Node (claude-code CLI install, not part of the data project)
+node_modules/
+package.json
+package-lock.json
