@@ -48,6 +48,7 @@ def fetch_series(series_id: str) -> pd.DataFrame:
         "series_id": series_id,
         "file_type": "json",
         "observation_start": start,
+        "api_key": os.getenv("FRED_API_KEY"),
     })
     resp.raise_for_status()
     observations = resp.json()["observations"]

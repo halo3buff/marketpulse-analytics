@@ -49,7 +49,7 @@ def ensure_table(cur):
             atl                               FLOAT,
             atl_change_percentage             FLOAT,
             atl_date                          TIMESTAMP_NTZ,
-            roi                               VARIANT,
+            roi                               VARCHAR,
             last_updated                      TIMESTAMP_NTZ,
             loaded_at                         TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
         )
@@ -86,12 +86,13 @@ def load_rows(cur, df: pd.DataFrame):
     insert_sql = f"""
         INSERT INTO MARKETPULSE.RAW.COINGECKO_PRICES
             ({", ".join(COLUMNS)})
-        SELECT {", ".join('%s' if c != 'roi' else 'PARSE_JSON(%s)' for c in COLUMNS)}
+        VALUES ({", ".join('%s' for _ in COLUMNS)})
     """
 
     rows = []
     for record in df[COLUMNS].to_dict(orient="records"):
-        record["roi"] = json.dumps(record["roi"]) if record["roi"] is not None else None
+        record = {k: (None if pd.isna(v) else v) for k, v in record.items()}
+        record["roi"] = json.dumps(record["roi"])
         rows.append(tuple(record[c] for c in COLUMNS))
 
     cur.executemany(insert_sql, rows)
