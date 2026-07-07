@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+  - name: alphavantage
+    description: Daily OHLCV stock price data from Alpha Vantage API.
+    database: MARKETPULSE
+    schema: RAW
+    loaded_at_field: LOADED_AT
+    freshness:
+      warn_after:  {count: 25, period: hour}
+      error_after: {count: 48, period: hour}
+
+    tables:
+      - name: ALPHAVANTAGE_DAILY_PRICES
+        description: >
+          Daily open/high/low/close/volume for each tracked stock symbol.
+          One row per symbol per trading day. Last 100 trading days per symbol.
+        columns:
+          - name: SYMBOL
+            description: Stock ticker symbol e.g. 'AAPL'
+          - name: TRADE_DATE
+            description: The trading date for this OHLCV row
+          - name: OPEN
+            description: Opening price in USD
+          - name: HIGH
+            description: Intraday high price in USD
+          - name: LOW
+            description: Intraday low price in USD
+          - name: CLOSE
+            description: Closing price in USD
+          - name: VOLUME
+            description: Number of shares traded
+          - name: LOADED_AT
+            description: Timestamp when this row was loaded into Snowflake

@@ -1,0 +1,73 @@
+version: 2
+
+sources:
+  - name: coingecko
+    description: Raw market data ingested from the CoinGecko API. Updated daily.
+    database: MARKETPULSE
+    schema: RAW
+    loaded_at_field: LOADED_AT
+    freshness:
+      warn_after:  {count: 25, period: hour}
+      error_after: {count: 48, period: hour}
+
+    tables:
+      - name: COINGECKO_PRICES
+        description: >
+          One row per cryptocurrency per daily load.
+          Contains price, market cap, volume, and supply data
+          for the top 50 coins by market cap.
+        columns:
+          - name: ID
+            description: CoinGecko unique identifier e.g. 'bitcoin'
+          - name: SYMBOL
+            description: Ticker symbol e.g. 'btc'
+          - name: NAME
+            description: Human readable name e.g. 'Bitcoin'
+          - name: IMAGE
+            description: URL to the coin's logo image
+          - name: CURRENT_PRICE
+            description: Current price in USD
+          - name: MARKET_CAP
+            description: Total market capitalization in USD
+          - name: MARKET_CAP_RANK
+            description: Rank by market cap (1 = largest)
+          - name: FULLY_DILUTED_VALUATION
+            description: Market cap if max supply were in circulation
+          - name: TOTAL_VOLUME
+            description: 24-hour trading volume in USD
+          - name: HIGH_24H
+            description: Highest price in last 24 hours in USD
+          - name: LOW_24H
+            description: Lowest price in last 24 hours in USD
+          - name: PRICE_CHANGE_24H
+            description: Absolute price change in last 24 hours in USD
+          - name: PRICE_CHANGE_PERCENTAGE_24H
+            description: Percentage price change in last 24 hours
+          - name: MARKET_CAP_CHANGE_24H
+            description: Absolute market cap change in last 24 hours
+          - name: MARKET_CAP_CHANGE_PERCENTAGE_24H
+            description: Percentage market cap change in last 24 hours
+          - name: CIRCULATING_SUPPLY
+            description: Number of coins currently in circulation
+          - name: TOTAL_SUPPLY
+            description: Total coins that exist
+          - name: MAX_SUPPLY
+            description: Maximum coins that will ever exist
+          - name: ATH
+            description: All-time high price in USD
+          - name: ATH_CHANGE_PERCENTAGE
+            description: Percentage below all-time high
+          - name: ATH_DATE
+            description: Date the all-time high was reached
+          - name: ATL
+            description: All-time low price in USD
+          - name: ATL_CHANGE_PERCENTAGE
+            description: Percentage above all-time low
+          - name: ATL_DATE
+            description: Date the all-time low was reached
+          - name: ROI
+            description: Return on investment data (JSON string, null for most coins)
+          - name: LAST_UPDATED
+            description: Timestamp from CoinGecko when price was last updated
+          - name: LOADED_AT
+            description: Timestamp when this row was loaded into Snowflake
