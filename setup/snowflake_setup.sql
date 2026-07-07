@@ -6,13 +6,15 @@
 -- If your trial expires and you start a new one, run this again
 -- and your entire warehouse structure is restored in minutes.
 -- =============================================================
+-- !! Use a placeholder and set the real password manually !!
+-- =============================================================
 
 
 -- -------------------------------------------------------------
 -- BLOCK 1 — Create the compute warehouse
 -- -------------------------------------------------------------
 -- AUTO_SUSPEND = 60 shuts it off after 60 seconds of inactivity.
--- This is critical on a free trial -- without it you burn credits
+-- Critical on a free trial -- without it you burn credits
 -- while not running anything.
 
 CREATE WAREHOUSE IF NOT EXISTS MARKETPULSE_WH
@@ -25,8 +27,6 @@ CREATE WAREHOUSE IF NOT EXISTS MARKETPULSE_WH
 -- -------------------------------------------------------------
 -- BLOCK 2 — Create the database
 -- -------------------------------------------------------------
--- One database for the entire project.
--- All schemas (RAW, STAGING, MARTS) live inside this one database.
 
 CREATE DATABASE IF NOT EXISTS MARKETPULSE
     COMMENT = 'MarketPulse Analytics — financial intelligence pipeline';
@@ -35,12 +35,11 @@ CREATE DATABASE IF NOT EXISTS MARKETPULSE
 -- -------------------------------------------------------------
 -- BLOCK 3 — Create all schemas
 -- -------------------------------------------------------------
--- Each schema represents one layer of the pipeline.
--- RAW:            ingestion scripts write here, dbt only reads from here
--- STAGING:        dbt writes cleaned views here
--- INTERMEDIATE:   dbt writes intermediate models here (if not ephemeral)
--- MARTS_CORE:     dbt writes core fact/dimension tables here
--- MARTS_FINANCE:  dbt writes finance-specific aggregations here
+-- RAW:             ingestion scripts write here, dbt only reads from here
+-- STAGING:         dbt writes cleaned views here
+-- INTERMEDIATE:    dbt writes intermediate models here (if not ephemeral)
+-- MARTS_CORE:      dbt writes core fact/dimension tables here
+-- MARTS_FINANCE:   dbt writes finance-specific aggregations here
 
 USE DATABASE MARKETPULSE;
 
@@ -81,14 +80,24 @@ GRANT ALL PRIVILEGES ON DATABASE MARKETPULSE TO ROLE DBT_ROLE;
 -- Grant access to all current schemas
 GRANT ALL PRIVILEGES ON ALL SCHEMAS IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
 
--- Grant access to all future schemas and tables automatically
+-- Grant access to all existing tables and views
+GRANT ALL PRIVILEGES ON ALL TABLES IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
+GRANT ALL PRIVILEGES ON ALL VIEWS  IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
+
+-- Grant access to all future objects automatically
+-- All three lines are required -- tables, views, and schemas
 GRANT ALL PRIVILEGES ON FUTURE SCHEMAS IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
 GRANT ALL PRIVILEGES ON FUTURE TABLES  IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
+GRANT ALL PRIVILEGES ON FUTURE VIEWS   IN DATABASE MARKETPULSE TO ROLE DBT_ROLE;
+
+-- Grant DBT_ROLE up to SYSADMIN so ACCOUNTADMIN inherits all object access
+-- Without this, ACCOUNTADMIN cannot query views/tables owned by DBT_ROLE
+GRANT ROLE DBT_ROLE TO ROLE SYSADMIN;
 
 -- Create the dbt service user
--- !! CHANGE 'yourpassword' to something strong before running !!
+-- !! REPLACE 'your_strong_password_here' with a real password before running !!
 CREATE USER IF NOT EXISTS DBT_USER
-    PASSWORD          = 'yourpassword'
+    PASSWORD          = 'your_strong_password_here'
     DEFAULT_ROLE      = DBT_ROLE
     DEFAULT_WAREHOUSE = MARKETPULSE_WH
     DEFAULT_NAMESPACE = MARKETPULSE
@@ -98,50 +107,24 @@ GRANT ROLE DBT_ROLE TO USER DBT_USER;
 
 
 -- -------------------------------------------------------------
--- BLOCK 5 — Placeholder raw table for connection testing
--- -------------------------------------------------------------
--- This gives dbt something to read during initial setup and testing.
--- The Python ingestion scripts will replace this with real data.
-
-USE DATABASE MARKETPULSE;
-USE SCHEMA RAW;
-
-CREATE TABLE IF NOT EXISTS RAW.COINGECKO_PRICES (
-    ID                VARCHAR,
-    SYMBOL            VARCHAR,
-    NAME              VARCHAR,
-    CURRENT_PRICE     FLOAT,
-    MARKET_CAP        FLOAT,
-    TOTAL_VOLUME      FLOAT,
-    PRICE_CHANGE_24H  FLOAT,
-    LAST_UPDATED      TIMESTAMP_TZ,
-    LOADED_AT         TIMESTAMP_TZ DEFAULT CURRENT_TIMESTAMP()
-);
-
-INSERT INTO RAW.COINGECKO_PRICES
-    (ID, SYMBOL, NAME, CURRENT_PRICE, MARKET_CAP, TOTAL_VOLUME, PRICE_CHANGE_24H, LAST_UPDATED)
-VALUES
-    ('bitcoin',  'btc', 'Bitcoin',  67500.00, 1330000000000, 28000000000, 2.3, CURRENT_TIMESTAMP()),
-    ('ethereum', 'eth', 'Ethereum',  3520.00,  423000000000, 14000000000, 1.8, CURRENT_TIMESTAMP());
-
-
--- -------------------------------------------------------------
 -- VERIFY — Run this at the end to confirm everything exists
 -- -------------------------------------------------------------
 
-SHOW WAREHOUSES  LIKE 'MARKETPULSE_WH';
-SHOW DATABASES   LIKE 'MARKETPULSE';
-SHOW SCHEMAS     IN DATABASE MARKETPULSE;
-SHOW ROLES       LIKE 'DBT_ROLE';
-SHOW USERS       LIKE 'DBT_USER';
-SELECT * FROM RAW.COINGECKO_PRICES;
+SHOW WAREHOUSES LIKE 'MARKETPULSE_WH';
+SHOW DATABASES  LIKE 'MARKETPULSE';
+SHOW SCHEMAS    IN DATABASE MARKETPULSE;
+SHOW ROLES      LIKE 'DBT_ROLE';
+SHOW USERS      LIKE 'DBT_USER';
 
 -- =============================================================
 -- TO RESTORE AFTER A NEW SNOWFLAKE TRIAL:
--- 1. Run all blocks above (change password in Block 4)
--- 2. Update profiles.yml with your new account identifier
--- 3. Run: dbt debug  (from inside the marketpulse/ folder)
--- 4. Run: dbt run
--- 5. Reconnect Looker Studio to the new Snowflake connection
+-- 1. Run all blocks above
+-- 2. Set real password in Block 4 (never commit it)
+-- 3. Update profiles.yml with new account identifier
+-- 4. Update .env with new password
+-- 5. Run: dbt debug  (from inside the marketpulse/ folder)
+-- 6. Run: python -m ingestion.run_all  (reload raw data)
+-- 7. Run: dbt run
+-- 8. Reconnect Looker Studio to the new Snowflake connection
 -- Total time: ~20 minutes
 -- =============================================================
