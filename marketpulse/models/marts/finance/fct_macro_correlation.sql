@@ -46,7 +46,11 @@ joined as (
 
     from prices p
     left join macro m
-        on p.price_date = m.observation_date
+        on m.observation_date = (
+            select max(m2.observation_date)
+            from {{ ref('int_macro__daily') }} m2
+            where m2.observation_date <= p.price_date
+        )
 
     where p.price_change_pct is not null
 
