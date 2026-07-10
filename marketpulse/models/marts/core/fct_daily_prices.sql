@@ -1,3 +1,11 @@
+{{
+    config(
+        materialized='incremental',
+        unique_key='price_id',
+        incremental_strategy='merge'
+    )
+}}
+
 with prices as (
 
     select * from {{ ref('int_prices__combined') }}
@@ -42,6 +50,16 @@ final as (
     from prices p
     left join assets a
         on p.asset_id = a.asset_id
+
+
+    {% if is_incremental() %}
+
+    where p.price_date >= (
+        select max(price_date)
+        from {{ this }}
+    )
+
+    {% endif %}
 
 )
 

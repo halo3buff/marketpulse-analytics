@@ -1,7 +1,21 @@
+{{
+    config(
+        materialized='incremental',
+        unique_key='price_id',
+        incremental_strategy='merge'
+    )
+}}
+
 with daily_prices as (
 
     select * from {{ ref('fct_daily_prices') }}
 
+    {% if is_incremental() %}
+    where price_date >= (
+        select max(price_date) from {{ this }}
+    )
+    {% endif %}
+    
 ),
 
 volatility as (
