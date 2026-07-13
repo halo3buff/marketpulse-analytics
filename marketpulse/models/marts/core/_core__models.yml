@@ -1,0 +1,90 @@
+
+version: 2
+
+models:
+  - name: dim_assets
+    description: >
+      Master dimension table of all tracked assets.
+      One row per asset. Contains both crypto and equity assets.
+    columns:
+      - name: asset_id
+        description: Unique identifier for each asset
+        tests:
+          - not_null
+          - unique
+
+      - name: asset_symbol
+        description: Ticker or symbol for the asset
+        tests:
+          - not_null
+
+      - name: asset_class
+        description: Whether the asset is crypto or equity
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['crypto', 'equity']
+
+  - name: fct_daily_prices
+    description: >
+      Historical daily prices for all tracked assets.
+      One row per asset per day. Incremental model that
+      accumulates history over time.
+
+    columns:
+      - name: price_id
+        description: Surrogate key - hash of asset_id + price_date
+        tests:
+          - not_null
+          - unique
+      
+      - name: asset_id
+        description: Foreign key to dim_assets
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_assets')
+                field: asset_id
+              config:
+                severity: warn
+      
+      - name: price_date
+        description: The date this price row applies to
+        tests:
+          - not_null
+        
+      - name: price_usd
+        description: Asset price in USD on this date
+        tests:
+          - not_null
+
+      - name: asset_class
+        description: Whether the asset is crypto or equity
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['crypto', 'equity']
+
+  - name: fct_asset_volatility
+    description: >
+      Rolling volatility metrics for each asset over time.
+      One row per asset per day with 7/30/90 day volatility windows.
+    columns:
+      - name: price_id
+        description: Surrogate key matching fct_daily_prices
+        tests:
+          - not_null
+          - unique
+
+      - name: asset_id
+        description: Foreign key to dim_assets
+        tests:
+          - not_null
+
+      - name: price_date
+        description: The date these volatility metrics apply to
+        tests:
+          - not_null

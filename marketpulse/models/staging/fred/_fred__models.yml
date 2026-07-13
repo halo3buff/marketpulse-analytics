@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_fred__indicators
+    description: >
+      Macroeconomic indicator data from FRED.
+      One row per series per observation date.
+    columns:
+      - name: indicator_id
+        description: FRED series identifier e.g. 'FEDFUNDS'
+        tests:
+          - not_null
+
+      - name: indicator_category
+        description: Category of the indicator
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['interest_rate', 'inflation', 'employment', 'fx_rate', 'other']
+
+      - name: observation_date
+        description: The date this observation applies to
+        tests:
+          - not_null
+
+      - name: indicator_value
+        description: The indicator value for this date
+        tests:
+          - not_null

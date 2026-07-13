@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: stg_coingecko__prices
+    description: >
+      Cleansed and renamed cryptocurrency market data from CoinGecko.
+      One row per coin per daily load. Truncated and reloaded each run.
+    columns:
+      - name: coin_id
+        description: CoinGecko unique identifier e.g. 'bitcoin'
+        tests:
+          - not_null
+          - unique
+
+      - name: coin_symbol
+        description: Ticker symbol e.g. 'btc'
+        tests:
+          - not_null
+
+      - name: coin_name
+        description: Human readable name e.g. 'Bitcoin'
+        tests:
+          - not_null
+        
+      - name: price_usd
+        description: Current price in USD
+        tests:
+          - not_null
+
+      - name: market_cap_usd
+        description: Total market capitalization in USD
+        tests:
+          - not_null

@@ -5,10 +5,11 @@ sources:
     description: Daily OHLCV stock price data from Alpha Vantage API.
     database: MARKETPULSE
     schema: RAW
-    loaded_at_field: LOADED_AT
-    freshness:
-      warn_after:  {count: 25, period: hour}
-      error_after: {count: 48, period: hour}
+    config:
+      loaded_at_field: LOADED_AT
+      freshness:
+        warn_after:  {count: 25, period: hour}
+        error_after: {count: 48, period: hour}
 
     tables:
       - name: ALPHAVANTAGE_DAILY_PRICES

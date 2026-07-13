@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: stg_alphavantage__daily_prices
+    description: >
+      Daily OHLCV stock price data from Alpha Vantage.
+      One row per symbol per trading day.
+    columns:
+      - name: ticker_symbol
+        description: Stock ticker e.g. 'AAPL'
+        tests:
+          - not_null
+
+      - name: trade_date
+        description: The trading date for this row
+        tests:
+          - not_null
+
+      - name: close_usd
+        description: Closing price in USD
+        tests:
+          - not_null
+
+      - name: open_usd
+        description: Opening price in USD
+        tests:
+          - not_null

@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: fct_macro_correlation
+    description: >
+      Daily asset prices joined with macroeconomic indicators.
+      One row per asset per day where price data exists.
+      Macro indicators forward filled between releases.
+    columns:
+      - name: price_id
+        description: Surrogate key matching fct_daily_prices
+        tests:
+          - not_null
+          - unique
+
+      - name: asset_id
+        description: Foreign key to dim_assets
+        tests:
+          - not_null
+
+      - name: price_date
+        description: The date this row applies to
+        tests:
+          - not_null
+
+      - name: asset_class
+        description: Whether the asset is crypto or equity
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['crypto', 'equity']
