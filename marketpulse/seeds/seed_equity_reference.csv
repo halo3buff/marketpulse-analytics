@@ -1,0 +1,11 @@
+ticker_symbol,company_name,sector
+AAPL,Apple,Technology
+AMZN,Amazon,Consumer Discretionary
+GOOGL,Alphabet,Communication Services
+GS,Goldman Sachs,Financials
+JPM,JPMorgan Chase,Financials
+META,Meta Platforms,Communication Services
+MSFT,Microsoft,Technology
+NVDA,Nvidia,Technology
+SPY,SPDR S&P 500 ETF Trust,Broad Market Index
+TSLA,Tesla,Consumer Discretionary

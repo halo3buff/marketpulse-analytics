@@ -48,3 +48,7 @@ models:
         +schema: marts_core
       finance:
         +schema: marts_finance
+
+seeds:
+  marketpulse:
+    +schema: seeds

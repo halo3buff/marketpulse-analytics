@@ -18,7 +18,10 @@ with crypto_assets as (
         all_time_high_usd,
         all_time_high_date,
         circulating_supply,
-        max_supply
+        max_supply,
+
+        null                        as company_name,
+        null                        as sector
 
     from {{ ref('stg_coingecko__prices') }}
 
@@ -27,9 +30,9 @@ with crypto_assets as (
 equity_assets as (
 
     select distinct
-        ticker_symbol               as asset_id,
-        ticker_symbol               as asset_symbol,
-        ticker_symbol               as asset_name,
+        stg.ticker_symbol           as asset_id,
+        stg.ticker_symbol           as asset_symbol,
+        stg.ticker_symbol           as asset_name,
         'equity'                    as asset_class,
         null                        as market_cap_rank,
         null                        as market_cap_usd,
@@ -37,9 +40,14 @@ equity_assets as (
         null                        as all_time_high_usd,
         null                        as all_time_high_date,
         null                        as circulating_supply,
-        null                        as max_supply
+        null                        as max_supply,
 
-    from {{ ref('stg_alphavantage__daily_prices') }}
+        seed.company_name,
+        seed.sector
+
+    from {{ ref('stg_alphavantage__daily_prices') }} stg
+    left join {{ ref('seed_equity_reference') }} seed
+        on stg.ticker_symbol = seed.ticker_symbol
 
 ),
 
