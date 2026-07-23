@@ -1,0 +1,19 @@
+version: 2
+
+exposures:
+  - name: marketpulse_dashboard
+    label: MarketPulse Executive Dashboard
+    type: dashboard
+    maturity: medium
+    description: >
+      Looker Studio dashboard visualizing price history, volatility,
+      macro correlation, and market cap tier distribution across
+      tracked crypto and equity assets.
+    depends_on:
+      - ref('dim_assets')
+      - ref('fct_daily_prices')
+      - ref('fct_asset_volatility')
+      - ref('fct_macro_correlation')
+    owner:
+      name: Ameen Debryn
+      email: ameen.d14@gmail.com
