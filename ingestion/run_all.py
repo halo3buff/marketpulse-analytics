@@ -1,6 +1,6 @@
-import alphavantage_ingest
-import coingecko_ingest
-import fred_ingest
+from . import alphavantage_ingest
+from . import coingecko_ingest
+from . import fred_ingest
 
 PIPELINE = [
     ("CoinGecko", coingecko_ingest),

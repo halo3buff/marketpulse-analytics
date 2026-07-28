@@ -58,6 +58,12 @@ CREATE SCHEMA IF NOT EXISTS MARTS_CORE
 CREATE SCHEMA IF NOT EXISTS MARTS_FINANCE
     COMMENT = 'dbt marts layer — finance-specific aggregations';
 
+CREATE SCHEMA IF NOT EXISTS SEEDS
+    COMMENT = 'dbt seeds layer — static reference data (equity sector mapping)';
+
+CREATE SCHEMA IF NOT EXISTS SNAPSHOTS
+    COMMENT = 'dbt snapshots layer — SCD Type 2 history for slowly changing data';
+
 
 -- -------------------------------------------------------------
 -- BLOCK 4 — Create a dedicated role and user for dbt
@@ -124,7 +130,7 @@ SHOW USERS      LIKE 'DBT_USER';
 -- 4. Update .env with new password
 -- 5. Run: dbt debug  (from inside the marketpulse/ folder)
 -- 6. Run: python -m ingestion.run_all  (reload raw data)
--- 7. Run: dbt run
+-- 7. Run: dbt build
 -- 8. Reconnect Looker Studio to the new Snowflake connection
 -- Total time: ~20 minutes
 -- =============================================================

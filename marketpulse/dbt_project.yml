@@ -52,3 +52,18 @@ models:
 seeds:
   marketpulse:
     +schema: seeds
+    +docs:
+      node_color: "#F08DD7"
+
+
+tests:
+  marketpulse:
+    +docs:
+      node_color: "#8900E6"
+
+
+snapshots:
+  marketpulse:
+    +docs:
+      node_color: "#C49E00"
+
