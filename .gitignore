@@ -10,7 +10,6 @@ marketpulse/dbt_packages/
 marketpulse/logs/
 
 # Credentials — never commit these
-profiles.yml
 *.env
 
 # OS
