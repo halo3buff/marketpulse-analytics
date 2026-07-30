@@ -2,3 +2,5 @@ requests
 snowflake-connector-python
 python-dotenv
 pandas
+dbt-core==1.11.11
+dbt-snowflake==1.11.5
