@@ -72,3 +72,15 @@ sources:
             description: Timestamp from CoinGecko when price was last updated
           - name: LOADED_AT
             description: Timestamp when this row was loaded into Snowflake
+
+      - name: COINGECKO_HISTORICAL_PRICES
+        description: >
+          One-time historical backfill of daily crypto prices, up to 365 days,
+          pulled from CoinGecko's market_chart endpoint. One row per coin per day.
+        columns:
+          - name: COIN_ID
+          - name: PRICE_DATE
+          - name: PRICE_USD
+          - name: MARKET_CAP_USD
+          - name: VOLUME_USD
+          - name: LOADED_AT

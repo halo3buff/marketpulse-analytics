@@ -32,11 +32,36 @@ equity_prices as (
 
 ),
 
+crypto_historical_prices as (
+
+    select
+        h.asset_id,
+        h.asset_symbol,
+        h.asset_name,
+        h.asset_class,
+        h.price_date,
+        h.price_usd,
+        h.volume_usd,
+        h.market_cap_usd,
+        h.price_change_pct
+
+    from {{ ref('stg_coingecko__historical_prices') }} h
+    where not exists (
+        select 1
+        from {{ ref('stg_coingecko__prices') }} c
+        where c.coin_id = h.asset_id
+          and cast(c.price_updated_at as date) = h.price_date
+    )
+
+),
+
 combined as (
 
     select * from crypto_prices
     union all
     select * from equity_prices
+    union all
+    select * from crypto_historical_prices
 
 )
 
