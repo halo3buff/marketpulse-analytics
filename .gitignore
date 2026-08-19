@@ -26,3 +26,6 @@ hidden_valley/
 node_modules/
 package.json
 package-lock.json
+
+# Personal notes
+PROJECT_WALKTHROUGH.md

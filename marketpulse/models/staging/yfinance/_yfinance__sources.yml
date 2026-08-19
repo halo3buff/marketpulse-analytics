@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: yfinance
+    description: One-time historical equity backfill pulled from Yahoo Finance (Alpha Vantage's free tier can't provide history beyond 100 days).
+    database: MARKETPULSE
+    schema: RAW
+    config:
+      loaded_at_field: LOADED_AT
+
+    tables:
+      - name: YFINANCE_HISTORICAL_PRICES
+        description: >
+          One-time historical backfill of daily equity prices, up to 365 days,
+          pulled from Yahoo Finance. One row per symbol per trading day.
+        columns:
+          - name: SYMBOL
+          - name: TRADE_DATE
+          - name: OPEN
+          - name: HIGH
+          - name: LOW
+          - name: CLOSE
+          - name: VOLUME
+          - name: LOADED_AT

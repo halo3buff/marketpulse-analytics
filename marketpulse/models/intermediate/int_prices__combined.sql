@@ -55,6 +55,29 @@ crypto_historical_prices as (
 
 ),
 
+equity_historical_prices as (
+
+    select
+        h.asset_id,
+        h.asset_symbol,
+        h.asset_name,
+        h.asset_class,
+        h.price_date,
+        h.price_usd,
+        h.volume_usd,
+        null            as market_cap_usd,
+        h.price_change_pct
+
+    from {{ ref('stg_yfinance__historical_prices') }} h
+    where not exists (
+        select 1
+        from {{ ref('stg_alphavantage__daily_prices') }} d
+        where d.ticker_symbol = h.asset_id
+          and d.trade_date = h.price_date
+    )
+
+),
+
 combined as (
 
     select * from crypto_prices
@@ -62,6 +85,8 @@ combined as (
     select * from equity_prices
     union all
     select * from crypto_historical_prices
+    union all
+    select * from equity_historical_prices
 
 )
 
