@@ -29,3 +29,58 @@ models:
           - accepted_values:
               arguments:
                 values: ['crypto', 'equity']
+
+  - name: fct_rolling_correlation
+    description: >
+      One row per day. Daily average % change for crypto and equity, and each
+      series' 30-day rolling correlation against the Fed Funds rate.
+      Note: both correlation columns go NULL for any 30-day window where the
+      Fed Funds rate had zero variance (e.g. Jan-Apr 2026, held flat at
+      3.64%) - correlation is undefined when one side of the pair never
+      moves. This is expected, not a data bug.
+    columns:
+      - name: price_date
+        description: The date this row applies to
+        tests:
+          - not_null
+
+      - name: crypto_fedfunds_rolling_corr_30d
+        description: 30-day rolling correlation between crypto_avg_pct_change and fed_funds_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -1
+                max_value: 1
+
+      - name: equity_fedfunds_rolling_corr_30d
+        description: 30-day rolling correlation between equity_avg_pct_change and fed_funds_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -1
+                max_value: 1
+
+  - name: fct_correlation_matrix
+    description: >
+      Long/tall pairwise correlation matrix (one row per variable pair) across
+      crypto_avg_pct_change, equity_avg_pct_change, and the macro indicators,
+      computed as a plain aggregate over full available history.
+    columns:
+      - name: metric_a
+        description: First variable in the pair
+        tests:
+          - not_null
+
+      - name: metric_b
+        description: Second variable in the pair
+        tests:
+          - not_null
+
+      - name: correlation_value
+        description: Pearson correlation between metric_a and metric_b
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -1
+                max_value: 1

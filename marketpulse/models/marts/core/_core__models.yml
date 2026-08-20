@@ -88,3 +88,32 @@ models:
         description: The date these volatility metrics apply to
         tests:
           - not_null
+
+  - name: fct_price_index
+    description: >
+      Each asset's price rebased to 100 on its first tracked day, so
+      differently-scaled assets (e.g. BTC vs AAPL) can be compared on one
+      chart. Plain table (not incremental) built off the full fct_daily_prices
+      so the first_value() window always sees an asset's true first day,
+      not just whatever rows an incremental run happened to touch.
+    columns:
+      - name: price_id
+        description: Surrogate key matching fct_daily_prices
+        tests:
+          - not_null
+          - unique
+
+      - name: asset_id
+        description: Foreign key to dim_assets
+        tests:
+          - not_null
+
+      - name: price_date
+        description: The date this index value applies to
+        tests:
+          - not_null
+
+      - name: indexed_price
+        description: price_usd / first-ever price_usd for this asset * 100
+        tests:
+          - not_null

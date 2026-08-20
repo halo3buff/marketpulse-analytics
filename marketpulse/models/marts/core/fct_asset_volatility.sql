@@ -12,7 +12,7 @@ with daily_prices as (
 
     {% if is_incremental() %}
     where price_date >= (
-        select max(price_date) from {{ this }}
+        select dateadd(day, -89, max(price_date)) from {{ this }}
     )
     {% endif %}
     
