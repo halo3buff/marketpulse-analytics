@@ -7,7 +7,7 @@ with_change as (
         symbol,
         trade_date,
         close as price_usd,
-        volume as volume_usd,
+        volume * close as volume_usd,
         (close - lag(close) over (partition by symbol order by trade_date))
             / nullif(lag(close) over (partition by symbol order by trade_date), 0) * 100
             as price_change_pct

@@ -89,6 +89,18 @@ models:
         tests:
           - not_null
 
+      - name: market_cap_usd
+        description: >
+          Market cap in USD, from fct_daily_prices. Null for equities
+          (Alpha Vantage doesn't provide market cap) - only populated
+          for crypto.
+
+      - name: volume_usd
+        description: >
+          Daily dollar trading volume, from fct_daily_prices. Populated
+          for both asset classes - equity volume is shares_traded * close_usd
+          (Alpha Vantage/yfinance give share counts, not dollars, natively).
+
   - name: fct_price_index
     description: >
       Each asset's price rebased to 100 on its first tracked day, so

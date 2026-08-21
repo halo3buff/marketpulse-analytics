@@ -27,6 +27,8 @@ volatility as (
         asset_name,
         asset_class,
         market_cap_tier,
+        market_cap_usd,
+        volume_usd,
         price_date,
         price_usd,
         price_change_pct,
