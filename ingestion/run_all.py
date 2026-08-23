@@ -10,9 +10,17 @@ PIPELINE = [
 
 
 def main():
+    failures = []
     for label, module in PIPELINE:
         print(f"\n{'=' * 40}\n{label}\n{'=' * 40}")
-        module.main()
+        try:
+            module.main()
+        except Exception as e:
+            print(f"{label} failed: {e}")
+            failures.append(label)
+
+    if failures:
+        raise SystemExit(f"Pipeline finished with failures: {', '.join(failures)}")
 
 
 if __name__ == "__main__":
