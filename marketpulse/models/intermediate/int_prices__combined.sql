@@ -1,10 +1,10 @@
 with crypto_prices as (
 
-    -- price_change_pct computed the same way as crypto_historical_prices below
-    -- (today's close vs yesterday's stored close) instead of CoinGecko's own
-    -- price_change_pct_24h, which is a rolling window from the API call time,
-    -- not a calendar-day close-to-close change - mixing the two methodologies
-    -- made "today" look inflated relative to every other day in the series.
+    -- price_change_pct is computed downstream in fct_daily_prices via lag()
+    -- over the full unified crypto price series, not here - joining against
+    -- stg_coingecko__historical_prices (a one-time/manual backfill, not part
+    -- of the daily pipeline) meant this went permanently null for every day
+    -- after the last manual backfill run.
     select
         c.coin_id                         as asset_id,
         c.coin_symbol                     as asset_symbol,
@@ -14,13 +14,9 @@ with crypto_prices as (
         c.price_usd,
         c.volume_usd_24h                  as volume_usd,
         c.market_cap_usd,
-        (c.price_usd - y.price_usd) / nullif(y.price_usd, 0) * 100
-                                           as price_change_pct
+        cast(null as float)               as price_change_pct
 
     from {{ ref('stg_coingecko__prices') }} c
-    left join {{ ref('stg_coingecko__historical_prices') }} y
-        on y.asset_id = c.coin_id
-        and y.price_date = dateadd(day, -1, cast(c.price_updated_at as date))
 
 ),
 
@@ -43,6 +39,10 @@ equity_prices as (
 
 crypto_historical_prices as (
 
+    -- price_change_pct nulled out here too and recomputed downstream in
+    -- fct_daily_prices via lag() over the full unified series, so every
+    -- crypto row (live or backfilled) uses one consistent calculation with
+    -- no seam at the boundary between the two sources.
     select
         h.asset_id,
         h.asset_symbol,
@@ -52,7 +52,7 @@ crypto_historical_prices as (
         h.price_usd,
         h.volume_usd,
         h.market_cap_usd,
-        h.price_change_pct
+        cast(null as float) as price_change_pct
 
     from {{ ref('stg_coingecko__historical_prices') }} h
     where not exists (
