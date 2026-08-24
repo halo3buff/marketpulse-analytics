@@ -1,0 +1,19 @@
+
+version: 2
+
+models:
+  - name: fct_volatility_features
+    description: >
+      Feature table for volatility forecasting. One row per asset per day.
+      Contains today's known values as features and next-day volatility_7d
+      as the prediction target.
+    columns:
+      - name: asset_id
+        tests:
+          - not_null
+      - name: price_date
+        tests:
+          - not_null
+      - name: target_next_day_volatility_7d
+        tests:
+          - not_null
