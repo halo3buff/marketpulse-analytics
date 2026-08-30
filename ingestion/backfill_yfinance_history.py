@@ -42,6 +42,10 @@ def fetch_history(symbol: str) -> pd.DataFrame:
     return df[["symbol", "trade_date", "Open", "High", "Low", "Close", "Volume"]]
 
 def load_rows(cur, df: pd.DataFrame):
+    # pandas NaN passed straight to executemany() gets serialized as the
+    # literal token NAN, which Snowflake parses as a bad identifier instead
+    # of NULL - cast to object dtype first so None actually sticks.
+    df = df.astype(object).where(pd.notnull(df), None)
     rows = list(df.itertuples(index=False, name=None))
     cur.executemany("""
         INSERT INTO MARKETPULSE.RAW.YFINANCE_HISTORICAL_PRICES

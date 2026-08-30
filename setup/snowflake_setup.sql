@@ -128,9 +128,35 @@ SHOW USERS      LIKE 'DBT_USER';
 -- 2. Set real password in Block 4 (never commit it)
 -- 3. Update profiles.yml with new account identifier
 -- 4. Update .env with new password
--- 5. Run: dbt debug  (from inside the marketpulse/ folder)
--- 6. Run: python -m ingestion.run_all  (reload raw data)
--- 7. Run: dbt build
--- 8. Reconnect Looker Studio to the new Snowflake connection
--- Total time: ~20 minutes
+-- 5. Update GitHub repo secrets too, not just local files - Settings >
+--    Secrets and variables > Actions - update SNOWFLAKE_ACCOUNT,
+--    SNOWFLAKE_USER, SNOWFLAKE_PASSWORD, SNOWFLAKE_DATABASE,
+--    SNOWFLAKE_WAREHOUSE. Both daily_pipeline.yml and
+--    freshness_check.yml read from these, not from .env - miss this
+--    and the nightly job + freshness alert keep silently pointing at
+--    the dead trial account.
+-- 6. Run: dbt debug  (from inside the marketpulse/ folder, confirms connection)
+-- 7. Run: dbt deps  (from inside marketpulse/ - dbt_packages/ is gitignored,
+--    build fails immediately without this)
+-- 8. Run: python -m ingestion.run_all
+--    (loads today's live snapshot - crypto, equity, FRED macro.
+--    fred_ingest.py already pulls a full trailing year on every run,
+--    so macro history needs no separate backfill step)
+-- 9. Run: python -m ingestion.backfill_coingecko_history
+--    (365 days of crypto history - takes ~10 min, CoinGecko rate limits)
+-- 10. Run: python -m ingestion.backfill_yfinance_history
+--    (365 days of equity history - Alpha Vantage's daily pull only ever
+--    gives ~100 days, this is the only source for the full year)
+-- 11. Run: dbt build  (from inside marketpulse/ - do this AFTER both
+--    backfills above, not before: fct_daily_prices is incremental and
+--    only ever looks forward from its own max date, so if it builds
+--    first on thin data, the backfilled history added afterward gets
+--    silently skipped and needs a --full-refresh to ever be picked up)
+-- 12. Reconnect Looker Studio to the new Snowflake connection
+--
+-- NOTE: snapshot_crypto_market_cap_tier (tier-change history) restarts
+-- fresh on a new account - it's SCD tracking accumulated over time, not
+-- raw data any API can re-supply, so this one piece of history is
+-- genuinely unrecoverable. Everything else above fully restores.
+-- Total time: ~20-30 minutes (mostly waiting on the two backfills)
 -- =============================================================

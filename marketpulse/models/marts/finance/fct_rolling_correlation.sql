@@ -68,14 +68,20 @@ select
     equity_avg_pct_change,
     fed_funds_rate,
 
-    (n_crypto * sum_crypto_xy - sum_crypto_x * sum_crypto_y)
-        / nullif(sqrt(greatest((n_crypto * sum_crypto_x2 - sum_crypto_x * sum_crypto_x)
-                    * (n_crypto * sum_crypto_y2 - sum_crypto_y * sum_crypto_y), 0)), 0)
-        as crypto_fedfunds_rolling_corr_30d,
+    -- clamped to [-1, 1] - floating-point rounding on near-perfectly-
+    -- correlated windows (common early in the series when the 30-day
+    -- window is still filling up) can push the raw ratio a hair past
+    -- the mathematically valid range, e.g. 1.0000000000000002
+    greatest(-1, least(1,
+        (n_crypto * sum_crypto_xy - sum_crypto_x * sum_crypto_y)
+            / nullif(sqrt(greatest((n_crypto * sum_crypto_x2 - sum_crypto_x * sum_crypto_x)
+                        * (n_crypto * sum_crypto_y2 - sum_crypto_y * sum_crypto_y), 0)), 0)
+    )) as crypto_fedfunds_rolling_corr_30d,
 
-    (n_equity * sum_equity_xy - sum_equity_x * sum_equity_y)
-        / nullif(sqrt(greatest((n_equity * sum_equity_x2 - sum_equity_x * sum_equity_x)
-                    * (n_equity * sum_equity_y2 - sum_equity_y * sum_equity_y), 0)), 0)
-        as equity_fedfunds_rolling_corr_30d
+    greatest(-1, least(1,
+        (n_equity * sum_equity_xy - sum_equity_x * sum_equity_y)
+            / nullif(sqrt(greatest((n_equity * sum_equity_x2 - sum_equity_x * sum_equity_x)
+                        * (n_equity * sum_equity_y2 - sum_equity_y * sum_equity_y), 0)), 0)
+    )) as equity_fedfunds_rolling_corr_30d
 
 from windowed

@@ -43,7 +43,7 @@ def fetch_history(coin_id: str) -> pd.DataFrame:
             "days": "365",
         })
         if resp.status_code == 429 and attempt < 3:
-            time.sleep(15)
+            time.sleep(15 * (attempt + 1))  # 15s, 30s, 45s - back off harder each retry
             continue
         resp.raise_for_status()
         break
