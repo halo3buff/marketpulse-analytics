@@ -72,11 +72,23 @@ GitHub Actions orchestrates the nightly run (`.github/workflows/daily_pipeline.y
 
 *(screenshot placeholder)*
 
-KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-vs-return scatter, rolling and full-history correlation views, and a 7-day performance grid. All of it reads directly from the marts layer described below.
+KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-vs-return scatter, rolling and full-history correlation views, a 7-day performance grid, a blended Market Pulse Index, and a current-vs-historical crash drawdown comparison. All of it reads directly from the marts layer described below.
+
+### What each chart shows
+
+- **Price Index (Rebased to 100)**: every asset rescaled to start at 100 on its first tracked day, so a $60k coin and a $200 stock are directly comparable. A line at 150 means that asset is up 50% since tracking began.
+- **Market Pulse Index**: every asset's rebased price averaged into one line. Above 100 means the overall tracked market is up since tracking began, below means down. On weekends this reflects crypto only, since equities don't trade.
+- **7-Day Performance Grid**: daily % change per asset over the last 7 calendar days. A dash means no trading day (market closed) or data not yet loaded.
+- **Risk vs. Return (7-Day)**: each dot is one asset. X-axis is how much it's swung day to day (volatility), Y-axis is how much it's actually moved (return). Bubble size reflects trading volume.
+- **30-Day Rolling Correlation vs. Fed Funds Rate**: how closely crypto and equity returns have tracked the Fed Funds rate over the trailing 30 days. +1 means moving together, -1 means moving opposite, 0 means unrelated. Flat stretches at 0 usually mean the Fed Funds rate itself barely moved in that window.
+- **Correlation Matrix**: full-history correlation between every pair of tracked series. Closer to 1 or -1 means two things move together (or oppositely) reliably; closer to 0 means no real relationship.
+- **Crash Comparison**: SPY's current drawdown from its own tracked-period peak, shown next to widely-cited historical S&P 500 peak-to-trough percentages (2008, the dot-com crash, COVID, etc). Context only, not a prediction that current conditions will reach any of those levels.
+- **Daily Avg Change (KPI)**: average % change across all 60 tracked assets today, versus the same average yesterday.
+- **7-Day Volatility (KPI)**: how much daily returns have swung over the trailing 7 days. Higher means bigger day-to-day moves.
 
 ## dbt lineage
 
-*(screenshot placeholder, generate with `dbt docs generate && dbt docs serve` from `marketpulse/`, then export the lineage graph from the docs UI)*
+*(screenshot placeholder)*
 
 ## Data model
 
@@ -84,8 +96,10 @@ KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-v
 - **`fct_daily_prices`**: the core fact table. One row per asset per day, incremental, a full year of history. Everything else in the marts layer builds on top of this table.
 - **`fct_asset_volatility`**: 7/30/90-day rolling volatility and daily volatility ranking per asset.
 - **`fct_price_index`**: every asset rebased to 100 on its first tracked day, so a $60k coin and a $200 stock land on the same chart.
+- **`fct_market_pulse`**: every asset's indexed price averaged into one blended line per day, plus crypto-only and equity-only sub-lines.
 - **`fct_macro_correlation`**: daily prices joined to forward-filled macro indicators.
 - **`fct_rolling_correlation`** / **`fct_correlation_matrix`**: 30-day rolling and full-history pairwise correlation across crypto returns, equity returns, and every macro indicator.
+- **`fct_crash_comparison`**: SPY's current drawdown from its tracked-period peak, alongside widely-cited historical S&P 500 crash magnitudes, for scale only.
 - **`fct_volatility_features`**: feature table behind the ML experiment below.
 
 ## Data quality
