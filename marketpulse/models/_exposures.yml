@@ -6,14 +6,21 @@ exposures:
     type: dashboard
     maturity: medium
     description: >
-      Looker Studio dashboard visualizing price history, volatility,
-      macro correlation, and market cap tier distribution across
-      tracked crypto and equity assets.
+      Looker Studio dashboard visualizing price history, the rebased
+      price and market pulse indices, volatility, risk vs. return,
+      macro correlation, crash comparison, and market cap tier
+      distribution across tracked crypto and equity assets.
     depends_on:
       - ref('dim_assets')
       - ref('fct_daily_prices')
+      - ref('fct_latest_daily_prices')
       - ref('fct_asset_volatility')
+      - ref('fct_price_index')
+      - ref('fct_market_pulse')
       - ref('fct_macro_correlation')
+      - ref('fct_rolling_correlation')
+      - ref('fct_correlation_matrix')
+      - ref('fct_crash_comparison')
     owner:
       name: Ameen Debryn
       email: ameen.d14@gmail.com

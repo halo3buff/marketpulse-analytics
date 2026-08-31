@@ -129,3 +129,21 @@ models:
         description: price_usd / first-ever price_usd for this asset * 100
         tests:
           - not_null
+
+  - name: fct_market_pulse
+    description: >
+      One row per day - the tracked market's overall direction, not any
+      single asset. Averages every asset's indexed_price (from
+      fct_price_index) into one blended line, plus separate crypto-only
+      and equity-only sub-lines for comparison.
+    columns:
+      - name: price_date
+        description: The date this pulse reading applies to
+        tests:
+          - not_null
+          - unique
+
+      - name: market_pulse_index
+        description: Average indexed_price across all 60 tracked assets on this date
+        tests:
+          - not_null

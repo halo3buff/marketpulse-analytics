@@ -84,3 +84,21 @@ models:
               arguments:
                 min_value: -1
                 max_value: 1
+
+  - name: fct_crash_comparison
+    description: >
+      SPY's current drawdown from its own tracked-period peak, alongside
+      widely-cited historical S&P 500 peak-to-trough percentages for
+      famous crashes, for scale/context only - not a prediction and not
+      a claim that current conditions will reach any of these levels.
+    columns:
+      - name: label
+        description: Either "Current (since tracking began)" or a named historical crash
+        tests:
+          - not_null
+          - unique
+
+      - name: drawdown_pct
+        description: Peak-to-trough decline as a negative percentage (0 = no decline)
+        tests:
+          - not_null
