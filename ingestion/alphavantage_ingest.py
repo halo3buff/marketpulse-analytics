@@ -2,9 +2,10 @@ import os
 import time
 
 import pandas as pd
-import requests
 import snowflake.connector
 from dotenv import load_dotenv
+
+from . import SESSION
 
 load_dotenv()
 
@@ -45,7 +46,7 @@ def ensure_table(cur):
 
 
 def fetch_daily(symbol: str) -> pd.DataFrame:
-    resp = requests.get(ALPHAVANTAGE_URL, params={
+    resp = SESSION.get(ALPHAVANTAGE_URL, timeout=30, params={
         "function": "TIME_SERIES_DAILY",
         "symbol": symbol,
         "apikey": ALPHAVANTAGE_API_KEY,

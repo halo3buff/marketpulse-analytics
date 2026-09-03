@@ -2,9 +2,10 @@ import os
 from datetime import datetime, timedelta
 
 import pandas as pd
-import requests
 import snowflake.connector
 from dotenv import load_dotenv
+
+from . import SESSION
 
 load_dotenv()
 
@@ -49,7 +50,7 @@ def ensure_table(cur):
 
 def fetch_series(series_id: str, series_name: str) -> pd.DataFrame:
     start = (datetime.today() - timedelta(days=365)).strftime("%Y-%m-%d")
-    resp = requests.get(FRED_BASE_URL, params={
+    resp = SESSION.get(FRED_BASE_URL, timeout=30, params={
         "series_id": series_id,
         "file_type": "json",
         "observation_start": start,

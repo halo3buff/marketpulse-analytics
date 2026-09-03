@@ -1,11 +1,11 @@
 import json
 import os
-import time
 
 import pandas as pd
-import requests
 import snowflake.connector
 from dotenv import load_dotenv
+
+from . import SESSION
 
 load_dotenv()
 
@@ -58,20 +58,15 @@ def ensure_table(cur):
 
 
 def fetch_markets() -> pd.DataFrame:
-    for attempt in range(4):
-        resp = requests.get(COINGECKO_URL, params={
-            "vs_currency": "usd",
-            "order": "market_cap_desc",
-            "per_page": 50,
-            "page": 1,
-            "sparkline": "false",
-            "price_change_percentage": "24h",
-        })
-        if resp.status_code == 429 and attempt < 3:
-            time.sleep(15)
-            continue
-        resp.raise_for_status()
-        break
+    resp = SESSION.get(COINGECKO_URL, timeout=30, params={
+        "vs_currency": "usd",
+        "order": "market_cap_desc",
+        "per_page": 50,
+        "page": 1,
+        "sparkline": "false",
+        "price_change_percentage": "24h",
+    })
+    resp.raise_for_status()
     return pd.DataFrame(resp.json())
 
 
