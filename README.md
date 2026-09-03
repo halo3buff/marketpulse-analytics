@@ -70,7 +70,7 @@ GitHub Actions orchestrates the nightly run (`.github/workflows/daily_pipeline.y
 
 ## Dashboard
 
-*(screenshot placeholder)*
+![MarketPulse Analytics dashboard](docs/images/dashboard.png)
 
 KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-vs-return scatter, rolling and full-history correlation views, a 7-day performance grid, a blended Market Pulse Index, and a current-vs-historical crash drawdown comparison. All of it reads directly from the marts layer described below.
 
@@ -120,7 +120,7 @@ Stated up front rather than buried, since each one shapes how the numbers above 
 
 - **Equity history is backfilled, not native.** Alpha Vantage's free tier caps at roughly 100 days, so the 365-day equity history came from `yfinance`. Daily incremental loads still run through Alpha Vantage, meaning the two halves of the equity series come from different providers.
 - **One year of history.** Every correlation, volatility, and index figure is computed over a single year. That is enough to be interesting, not enough to be a regime-spanning claim.
-- **Fed Funds correlations are undefined for flat stretches.** The rate sat unchanged Jan-Apr, giving it zero variance, so a rolling correlation against it has no defined value there. Those flat runs at 0 mean "no signal available", not "genuinely uncorrelated".
+- **Fed Funds correlations are undefined for flat stretches, and the model renders that inconsistently.** The rate held at 3.64 Jan-Apr 2026 and has held at 3.63 since May 1, giving it no variance to correlate against. Where the variance computes to exactly zero (Feb-Apr) the guard fires and the value is `null`, showing as a gap in the chart. Where floating-point residue leaves it near-zero-but-not-zero (Jun onward) the guard misses and the value comes out around `1e-9`, which plots as a flat line on zero. Same underlying condition, two different renderings. Either way it means "no signal available", not "genuinely uncorrelated" - but note that the near-zero values are real numbers, so any `avg()` over `crypto_fedfunds_rolling_corr_30d` or `equity_fedfunds_rolling_corr_30d` will include them and pull the result toward zero. Filter to `abs(value) > 1e-6` when aggregating that column.
 - **The ML experiment is a negative result.** No model beat a naive persistence baseline. It stays in the repo as a documented finding, not a working feature.
 - **Weekend rows are crypto-only.** Equities do not trade, so the blended Market Pulse Index reflects only the crypto half on weekends and holidays.
 - **Crash comparison is context, not analysis.** SPY's drawdown is measured from its peak *within the tracked year*, and the historical crash percentages beside it are widely-cited external figures, not values computed from this warehouse.
