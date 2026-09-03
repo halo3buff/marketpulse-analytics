@@ -88,7 +88,9 @@ KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-v
 
 ## dbt lineage
 
-*(screenshot placeholder)*
+![dbt lineage graph](docs/images/dbt-lineage.png)
+
+Sources (green) land in `RAW`, staging views clean them 1:1, `int_prices__combined` unions crypto and equity onto one grain, and everything downstream of `fct_daily_prices` fans out into the marts the dashboard reads. Singular tests (purple) and the market-cap-tier snapshot (orange) hang off the models they guard.
 
 ## Data model
 
@@ -104,13 +106,25 @@ KPI strip, gainers and losers, a rebased cross-asset price index, a 7-day risk-v
 
 ## Data quality
 
-Every model gets tested on every build: schema tests (`not_null`, `unique`, `accepted_values`, `relationships`) plus singular tests for business-rule sanity (no negative prices, no future-dated rows, macro indicators within plausible bounds, correlation values bounded to [-1, 1]). `dbt build` runs models and tests together, so bad data gets caught before it reaches a chart.
+**61 data tests run on every build, across every layer** (58 schema tests + 3 singular business-rule tests): schema tests (`not_null`, `unique`, `accepted_values`, `relationships`) plus singular tests for business-rule sanity (no negative prices, no future-dated rows, macro indicators within plausible bounds, correlation values bounded to [-1, 1]). `dbt build` runs models and tests together, so bad data gets caught before it reaches a chart.
 
 The freshness-check workflow adds a second layer on top: it runs a few hours after the nightly pipeline and fails if the most recent trading data genuinely isn't there yet, catching a silently-skipped schedule before it shows up as a stale dashboard.
 
 ## ML experiment
 
 An attempt at forecasting next-day 7-day volatility. The first version scored well in testing, but only because of a random train/test split on time-series data, which let the model train on rolling windows that nearly duplicated the ones it was being tested against. Switching to a chronological split (train on older dates, test on newer ones the model has never seen) fixed the leak. The honest result afterward: none of the models, Random Forest or Linear Regression, with or without a trend feature, beat a naive "tomorrow looks like today" baseline. Volatility is strongly autocorrelated, so persistence is a genuinely hard baseline to clear, and this counts as a real finding rather than a dead end. The code stays in the repo as an experiment with a documented result, not a feature pretending to work.
+
+## Known limitations
+
+Stated up front rather than buried, since each one shapes how the numbers above should be read.
+
+- **Equity history is backfilled, not native.** Alpha Vantage's free tier caps at roughly 100 days, so the 365-day equity history came from `yfinance`. Daily incremental loads still run through Alpha Vantage, meaning the two halves of the equity series come from different providers.
+- **One year of history.** Every correlation, volatility, and index figure is computed over a single year. That is enough to be interesting, not enough to be a regime-spanning claim.
+- **Fed Funds correlations are undefined for flat stretches.** The rate sat unchanged Jan-Apr, giving it zero variance, so a rolling correlation against it has no defined value there. Those flat runs at 0 mean "no signal available", not "genuinely uncorrelated".
+- **The ML experiment is a negative result.** No model beat a naive persistence baseline. It stays in the repo as a documented finding, not a working feature.
+- **Weekend rows are crypto-only.** Equities do not trade, so the blended Market Pulse Index reflects only the crypto half on weekends and holidays.
+- **Crash comparison is context, not analysis.** SPY's drawdown is measured from its peak *within the tracked year*, and the historical crash percentages beside it are widely-cited external figures, not values computed from this warehouse.
+- **Free-tier upstreams fail sometimes.** CoinGecko, Alpha Vantage, and FRED all rate-limit and occasionally return 5xx. Ingestion retries with backoff; a run that still fails surfaces through the freshness-check workflow rather than silently leaving a gap.
 
 ## Project structure
 
@@ -156,7 +170,21 @@ pip install -r requirements.txt
 
 Run `setup/snowflake_setup.sql` in a Snowflake worksheet once. It creates the warehouse, database, schemas, and a dedicated `dbt` role/user.
 
-Create a `.env` in the project root with Snowflake credentials and the three API keys. See `ingestion/*.py` and `marketpulse/app/streamlit_app.py` for the exact variable names each one expects.
+Create a `.env` in the project root:
+
+```bash
+SNOWFLAKE_ACCOUNT=xxxxxxx-xxxxxxx
+SNOWFLAKE_USER=dbt_user
+SNOWFLAKE_PASSWORD=...
+SNOWFLAKE_DATABASE=MARKETPULSE
+SNOWFLAKE_WAREHOUSE=MARKETPULSE_WH
+
+ALPHAVANTAGE_API_KEY=...    # daily equity prices
+FRED_API_KEY=...            # macro indicators
+GOOGLE_API_KEY=...          # Gemini, only needed for the Streamlit app
+```
+
+dbt reads `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, and `SNOWFLAKE_PASSWORD` from the same file via `profiles.yml`; role, database, and warehouse are pinned there. The same names are the secrets the GitHub Actions workflows expect.
 
 ### Run the pipeline
 
@@ -183,3 +211,7 @@ streamlit run streamlit_app.py
 - [Alpha Vantage](https://www.alphavantage.co/): daily equity prices
 - [yfinance](https://github.com/ranaroussi/yfinance): historical equity backfill (Alpha Vantage's free tier caps at roughly 100 days)
 - [FRED](https://fred.stlouisfed.org/): Fed Funds Rate, CPI, unemployment, 10-year Treasury yield, USD/EUR rate
+
+## License
+
+MIT - see [LICENSE](LICENSE).
